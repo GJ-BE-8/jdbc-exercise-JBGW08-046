@@ -14,7 +14,6 @@ import java.util.Optional;
 class AccountRepositoryTest {
 
     //todo#7 AccountRepositoryTest를 실행하고 모든 테스트 케이스가 통과하도록 AccountRepositoryImpl을 구현합니다.
-
     Connection connection;
     AccountRepository accountRepository = new AccountRepositoryImpl();
 
