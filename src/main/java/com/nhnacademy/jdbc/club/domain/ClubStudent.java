@@ -1,12 +1,12 @@
 package com.nhnacademy.jdbc.club.domain;
 
+import java.util.List;
 import java.util.Objects;
 
 public class ClubStudent {
     //todo#2-ClubStudent는 jdbc_students , jdbc_club, jdbc_club_registrations table을 join해서 반환되는 결과를 담기위한 객체입니다.
     private final String studentId;
     private final String stduentName;
-
     private final String clubId;
     private final String clubName;
 
@@ -32,7 +32,6 @@ public class ClubStudent {
     public String getClubName() {
         return clubName;
     }
-
 
     @Override
     public boolean equals(Object o) {
