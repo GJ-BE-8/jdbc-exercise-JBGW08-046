@@ -22,6 +22,7 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
             psmt.setString(1,studentId);
             psmt.setString(2,clubId);
             int result = psmt.executeUpdate();
+            log.debug("save:{}",result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -36,7 +37,8 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
             psmt.setString(1,studentId);
             psmt.setString(2,clubId);
             int result = psmt.executeUpdate();
-            return  result;
+            log.debug("delete:{}",result);
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -46,13 +48,11 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     public List<ClubStudent> findClubStudentsByStudentId(Connection connection, String studentId) {
         //todo#13 - 학생 -> 클럽 등록, executeUpdate() 결과를 반환
         String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name from jdbc_students a inner join jdbc_club_registrations b on a.id=b.student_id inner join jdbc_club c on b.club_id=c.club_id where a.id=?";
-
         ResultSet rs = null;
         try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            psmt.setString(1,studentId);
+            psmt.setString(1, studentId);
             rs = psmt.executeQuery();
             List<ClubStudent> clubStudentList = new ArrayList<>();
-
             while (rs.next()){
                 clubStudentList.add(
                         new ClubStudent(
@@ -79,10 +79,8 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
 
     private List<ClubStudent> getClubStudentList(Connection connection, String sql){
         ResultSet rs = null;
-
         try(PreparedStatement psmt = connection.prepareStatement(sql)){
             rs = psmt.executeQuery();
-
             List<ClubStudent> clubStudentList = new ArrayList<>();
             while (rs.next()){
                 clubStudentList.add(
@@ -111,8 +109,10 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     @Override
     public List<ClubStudent> findClubStudents(Connection connection) {
         //todo#21 - join
-        String sql = "select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name from jdbc_students a  inner join jdbc_club_registrations b on a.id=b.student_id inner join jdbc_club c on b.club_id=c.club_id order by a.id asc, b.club_id asc";
-        log.debug("sql:{}",sql);
+        String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a inner join jdbc_club_registrations b on a.id = b.student_id inner join jdbc_club c on b.club_id = c.club_id " +
+                "order by a.id asc, b.club_id asc";
+        log.debug("join:{}",sql);
         try{
             return getClubStudentList(connection,sql);
         }catch (Exception e){
@@ -123,8 +123,10 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     @Override
     public List<ClubStudent> findClubStudents_left_join(Connection connection) {
         //todo#22 - left join
-        String sql = "select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name " +
-                "from jdbc_students a  left join jdbc_club_registrations b on a.id=b.student_id left join jdbc_club c on b.club_id=c.club_id order by a.id asc, b.club_id asc";
+        String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a left join jdbc_club_registrations b on a.id = b.student_id left join jdbc_club c on b.club_id = c.club_id " +
+                "order by a.id asc, b.club_id asc";
+        log.debug("left join:{}",sql);
         try{
             return getClubStudentList(connection,sql);
         }catch (Exception e){
@@ -135,7 +137,10 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     @Override
     public List<ClubStudent> findClubStudents_right_join(Connection connection) {
         //todo#23 - right join
-        String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name from jdbc_students a right join jdbc_club_registrations b on a.id=b.student_id right join jdbc_club c on b.club_id=c.club_id order by c.club_id asc,a.id asc";
+        String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a right join jdbc_club_registrations b on a.id = b.student_id right join jdbc_club c on b.club_id = c.club_id " +
+                "order by c.club_id asc,a.id asc";
+        log.debug("right join:{}",sql);
         try{
             return getClubStudentList(connection,sql);
         }catch (Exception e){
@@ -147,14 +152,13 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     public List<ClubStudent> findClubStudents_full_join(Connection connection) {
         //todo#24 - full join = left join union right join
         StringBuilder sb = new StringBuilder();
-        //left join
-        sb.append("select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name from jdbc_students a  left join jdbc_club_registrations b on a.id=b.student_id left join jdbc_club c on b.club_id=c.club_id");
+        sb.append("select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a left join jdbc_club_registrations b on a.id = b.student_id left join jdbc_club c on b.club_id = c.club_id");
         sb.append(System.lineSeparator());
         sb.append("union");
         sb.append(System.lineSeparator());
-        //right join
-        sb.append("select a.id as student_id, a.name as student_name, c.club_id, c.club_name from jdbc_students a right join jdbc_club_registrations b on a.id=b.student_id right join jdbc_club c on b.club_id=c.club_id");
-
+        sb.append("select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a right join jdbc_club_registrations b on a.id = b.student_id right join jdbc_club c on b.club_id = c.club_id");
         try{
             return getClubStudentList(connection,sb.toString());
         }catch (Exception e){
@@ -165,7 +169,10 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     @Override
     public List<ClubStudent> findClubStudents_left_excluding_join(Connection connection) {
         //todo#25 - left excluding join
-        String sql = "select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name from jdbc_students a  left join jdbc_club_registrations b on a.id=b.student_id left join jdbc_club c on b.club_id=c.club_id where c.club_id is null order by a.id asc";
+        String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a  left join jdbc_club_registrations b on a.id=b.student_id left join jdbc_club c on b.club_id=c.club_id where c.club_id is null " +
+                "order by a.id asc";
+        log.debug("left excluding join:{}",sql);
         try{
             return getClubStudentList(connection,sql);
         }catch (Exception e){
@@ -176,7 +183,9 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     @Override
     public List<ClubStudent> findClubStudents_right_excluding_join(Connection connection) {
         //todo#26 - right excluding join
-        String sql = "select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name from jdbc_students a  right join jdbc_club_registrations b on a.id=b.student_id right join jdbc_club c on b.club_id=c.club_id where a.id is null order by b.club_id asc ";
+        String sql = "select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a right join jdbc_club_registrations b on a.id = b.student_id right join jdbc_club c on b.club_id = c.club_id " +
+                "where a.id is null order by b.club_id asc ";
         try{
             return getClubStudentList(connection,sql);
         }catch (Exception e){
@@ -188,14 +197,15 @@ public class ClubRegistrationRepositoryImpl implements ClubRegistrationRepositor
     public List<ClubStudent> findClubStudents_outher_excluding_join(Connection connection) {
         //todo#27 - outher_excluding_join = left excluding join union right excluding join
         StringBuilder sb = new StringBuilder();
-        //left join
-        sb.append("select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name from jdbc_students a  left join jdbc_club_registrations b on a.id=b.student_id left join jdbc_club c on b.club_id=c.club_id where c.club_id is null");
+        sb.append("select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a left join jdbc_club_registrations b on a.id = b.student_id left join jdbc_club c on b.club_id = c.club_id " +
+                "where c.club_id is null");
         sb.append(System.lineSeparator());
         sb.append("union");
         sb.append(System.lineSeparator());
-        //right join
-        sb.append("select   a.id as student_id,  a.name as student_name,  c.club_id,  c.club_name from jdbc_students a  right join jdbc_club_registrations b on a.id=b.student_id right join jdbc_club c on b.club_id=c.club_id where a.id is null");
-
+        sb.append("select a.id as student_id, a.name as student_name, c.club_id, c.club_name " +
+                "from jdbc_students a right join jdbc_club_registrations b on a.id = b.student_id right join jdbc_club c on b.club_id = c.club_id " +
+                "where a.id is null");
         try{
             return getClubStudentList(connection,sb.toString());
         }catch (Exception e){
