@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Optional;
 
 public class AccountRepositoryImpl implements AccountRepository {
@@ -25,7 +26,9 @@ public class AccountRepositoryImpl implements AccountRepository {
             throw new RuntimeException(e);
         }finally {
             try {
-                rs.close();
+                if(Objects.nonNull(rs)){
+                    rs.close();
+                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -36,7 +39,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     @Override
     public int save(Connection connection, Account account) {
         //todo#2 계좌-등록, executeUpdate() 결과를 반환 합니다.
-        String sql = "insert into jdbc_account (account_number,name, balance) values(?,?,?)";
+        String sql = "insert into jdbc_account (account_number, name, balance) values(?,?,?)";
         try(PreparedStatement psmt = connection.prepareStatement(sql)){
             psmt.setLong(1, account.getAccountNumber());
             psmt.setString(2, account.getName());
@@ -64,7 +67,9 @@ public class AccountRepositoryImpl implements AccountRepository {
             throw new RuntimeException(e);
         }finally {
             try {
-                rs.close();
+                if(Objects.nonNull(rs)){
+                    rs.close();
+                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
