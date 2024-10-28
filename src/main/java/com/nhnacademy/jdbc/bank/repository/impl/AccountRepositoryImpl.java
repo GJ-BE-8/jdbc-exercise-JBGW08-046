@@ -2,6 +2,7 @@ package com.nhnacademy.jdbc.bank.repository.impl;
 
 import com.nhnacademy.jdbc.bank.domain.Account;
 import com.nhnacademy.jdbc.bank.repository.AccountRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 public class AccountRepositoryImpl implements AccountRepository {
 
     public Optional<Account> findByAccountNumber(Connection connection, long accountNumber){
@@ -17,10 +19,12 @@ public class AccountRepositoryImpl implements AccountRepository {
         String sql = "select account_number, name, balance from jdbc_account where account_number = ? ";
         ResultSet rs = null;
         try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            psmt.setLong(1,accountNumber);
+            psmt.setLong(1, accountNumber);
             rs = psmt.executeQuery();
             if(rs.next()){
-                return Optional.of(new Account(rs.getLong("account_number"), rs.getString("name"),rs.getLong("balance")));
+                return Optional.of(new Account(rs.getLong("account_number"),
+                        rs.getString("name"),
+                        rs.getLong("balance")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -54,9 +58,8 @@ public class AccountRepositoryImpl implements AccountRepository {
     public int countByAccountNumber(Connection connection, long accountNumber){
         int count=0;
         //todo#3 select count(*)를 이용해서 계좌의 개수를 count해서 반환
-        String sql = "select count(*) as cnt from jdbc_account where account_number=? ";
+        String sql = "select count(*) as COUNT_ACCOUNT from jdbc_account where account_number=? ";
         ResultSet rs = null;
-
         try(PreparedStatement psmt = connection.prepareStatement(sql)){
             psmt.setLong(1, accountNumber);
             rs = psmt.executeQuery();
@@ -85,6 +88,7 @@ public class AccountRepositoryImpl implements AccountRepository {
             psmt.setLong(1, amount);
             psmt.setLong(2, accountNumber);
             int result = psmt.executeUpdate();
+            log.debug("deposit:{}", result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -99,6 +103,7 @@ public class AccountRepositoryImpl implements AccountRepository {
             psmt.setLong(1, amount);
             psmt.setLong(2, accountNumber);
             int result = psmt.executeUpdate();
+            log.debug("withdraw:{}", result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -112,6 +117,7 @@ public class AccountRepositoryImpl implements AccountRepository {
         try(PreparedStatement psmt = connection.prepareStatement(sql)){
             psmt.setLong(1, accountNumber);
             int result = psmt.executeUpdate();
+            log.debug("delete:{}", result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);

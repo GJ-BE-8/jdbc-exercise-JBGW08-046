@@ -7,12 +7,13 @@ import com.nhnacademy.jdbc.bank.exception.BalanceNotEnoughException;
 import com.nhnacademy.jdbc.bank.repository.AccountRepository;
 import com.nhnacademy.jdbc.bank.repository.impl.AccountRepositoryImpl;
 import com.nhnacademy.jdbc.bank.service.BankService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.util.Optional;
 
+@Slf4j
 public class BankServiceImpl implements BankService {
-
     private final AccountRepository accountRepository;
 
     public BankServiceImpl(AccountRepository accountRepository) {
@@ -35,10 +36,9 @@ public class BankServiceImpl implements BankService {
         if(isExistAccount(connection,account.getAccountNumber())){
             throw new AccountAreadyExistException(account.getAccountNumber());
         }
-
         int result = accountRepository.save(connection, account);
         if(result < 1){
-            throw new RuntimeException("Do not Save Account");
+            throw new RuntimeException("fail_save");
         }
     }
 
@@ -48,26 +48,22 @@ public class BankServiceImpl implements BankService {
         if(!isExistAccount(connection, accountNumber)){
             throw new AccountNotFoundException(accountNumber);
         }
-
         int result = accountRepository.deposit(connection,accountNumber, amount);
         return result>0;
     }
 
     @Override
     public boolean withdrawAccount(Connection connection, long accountNumber, long amount){
-        //todo#14 출금, 계좌가 존재하는지 체크 ->  출금가능여부 체크 -> 출금실행, 성공 true, 실폐 false 반환
+        //todo#14 출금, 계좌가 존재하는지 체크 ->  출금가능여부 체크 -> 출금실행, 성공 true, 실패 false 반환
         if(!isExistAccount(connection, accountNumber)){
             throw new AccountNotFoundException(accountNumber);
         }
-
         Optional<Account> accountOptional = accountRepository.findByAccountNumber(connection,accountNumber);
         Account account = accountOptional.get();
-
         if( !account.isWithdraw(amount) ) {
             //잔액부족 예외처리
             throw new BalanceNotEnoughException(accountNumber);
         }
-
         int result = accountRepository.withdraw(connection,accountNumber,amount);
         return result>0;
     }
@@ -101,13 +97,13 @@ public class BankServiceImpl implements BankService {
         int result1 = accountRepository.withdraw(connection,accountNumberFrom,amount);
 
         if(result1<1){
-            throw new RuntimeException("fail - withdraw :" + accountNumberFrom );
+            throw new RuntimeException("fail_withdraw: " + accountNumberFrom );
         }
 
         int result2 = accountRepository.deposit(connection,accountNumberTo,amount);
 
         if(result2 <1){
-            throw new RuntimeException("fail - deposit : " + accountNumberTo);
+            throw new RuntimeException("fail_deposit: " + accountNumberTo);
         }
     }
 
@@ -126,7 +122,7 @@ public class BankServiceImpl implements BankService {
         }
         int result = accountRepository.deleteByAccountNumber(connection,accountNumber);
         if(result<1){
-            throw new RuntimeException("fail-dropAccount:" + accountNumber);
+            throw new RuntimeException("fail_delete: " + accountNumber);
         }
     }
 
