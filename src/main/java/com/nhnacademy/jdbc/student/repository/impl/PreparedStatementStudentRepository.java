@@ -91,7 +91,6 @@ public class PreparedStatementStudentRepository implements StudentRepository {
     public int deleteById(String id){
         //todo#4 학생 삭제
         String sql = "delete from jdbc_students where id=?";
-
         try(Connection connection = DbUtils.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
         ) {
