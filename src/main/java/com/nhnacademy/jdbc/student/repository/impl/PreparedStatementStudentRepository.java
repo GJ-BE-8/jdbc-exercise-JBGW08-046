@@ -6,6 +6,7 @@ import com.nhnacademy.jdbc.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -15,17 +16,16 @@ public class PreparedStatementStudentRepository implements StudentRepository {
     public int save(Student student){
         //todo#1 학생 등록
         String sql = "insert into jdbc_students(id,name,gender,age) values(?,?,?,?)";
-
+        log.debug("save:{}",sql);
         try(Connection connection = DbUtils.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
         ){
             statement.setString(1, student.getId());
             statement.setString(2, student.getName());
-            statement.setString(3, student.getGender().toString());
+            statement.setString(3, String.valueOf(student.getGender()));
             statement.setInt(4,student.getAge());
-
             int result = statement.executeUpdate();
-            log.debug("save:{}",result);
+            log.debug("save_result:{}",result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -37,12 +37,11 @@ public class PreparedStatementStudentRepository implements StudentRepository {
         //todo#2 학생 조회
         String sql = "select * from jdbc_students where id=?";
         log.debug("findById:{}",sql);
-
         ResultSet rs = null;
         try(Connection connection = DbUtils.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
         ) {
-            statement.setString(1,id);
+            statement.setString(1, id);
             rs = statement.executeQuery();
             if(rs.next()){
                 Student student =  new Student(rs.getString("id"),
@@ -54,11 +53,12 @@ public class PreparedStatementStudentRepository implements StudentRepository {
                 return Optional.of(student);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }finally {
             try {
-                rs.close();
+                if(Objects.nonNull(rs)){
+                    rs.close();
+                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -71,7 +71,6 @@ public class PreparedStatementStudentRepository implements StudentRepository {
         //todo#3 학생 수정 , name 수정
         String sql = "update jdbc_students set name=?, gender=?, age=? where id=?";
         log.debug("update:{}",sql);
-
         try(Connection connection = DbUtils.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
         ) {
@@ -80,9 +79,8 @@ public class PreparedStatementStudentRepository implements StudentRepository {
             statement.setString(++index, student.getGender().toString());
             statement.setInt(++index, student.getAge());
             statement.setString(++index, student.getId());
-
             int result = statement.executeUpdate();
-            log.debug("result:{}",result);
+            log.debug("update_result:{}",result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -99,7 +97,7 @@ public class PreparedStatementStudentRepository implements StudentRepository {
         ) {
             statement.setString(1, id);
             int result = statement.executeUpdate();
-            log.debug("result:{}",result);
+            log.debug("delete_result:{}",result);
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
